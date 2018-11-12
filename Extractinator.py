@@ -68,6 +68,7 @@ for line in open(GFF_file,'r'):
             strand = timber[6]
             start = int(timber[3])
             end = int(timber[4])
+            #print contig, start, end
             if contig in cds_dic:
                 prev = cds_dic[contig]
                 prev[str(start) + '...' + str(end)] = strand
@@ -90,36 +91,44 @@ outputting = open(outputfile,'w')
 if fasta == True:
     for read in HTSeq.FastaReader(seq_file):
         if read.name in cds_dic.keys():
+            #print read.name + ' contains CDS'
             cds_needed = cds_dic[read.name]
             for k,v in cds_needed.iteritems():
-                start = int(k.split('...')[0])-1
+                start = int(k.split('...')[0])
                 end = int(k.split('...')[1])
-                stand = v
-                where2end = len(read.seq) - end
-                cds = read.seq[start:-where2end]
-                if stand == '+':
-                    outputting.write('>' + k + '.' + strand +'\n')
+                #print 'Wanted starts and end; ', start , end
+                strand = v
+                where2end = end
+                #print 'Where to end; ', where2end
+                cds = read.seq[start:where2end]
+                #print cds
+                if strand == '+':
+                    outputting.write('>' +  read.name + '--' + str(k) + '.' + strand +'\n')
+                    #print '>' + k + '.' + strand
                     outputting.write(cds + '\n')
-                if stand == '-':
+                    #print cds
+                if strand == '-':
                     corrected = rev_comp(cds)
-                    outputting.write('>' + k + '.' + strand +'\n')
+                    #print '>' + k + '.' + strand
+                    #print corrected
+                    outputting.write('>' + read.name + '--' + str(k) + '.' + strand +'\n')
                     outputting.write(corrected + '\n')
 elif fastq == True:
     for read in HTSeq.FastqReader(seq_file):
         if read.name in cds_dic.keys():
             cds_needed = cds_dic[read.name]
             for k,v in cds_needed.iteritems():
-                start = int(k.split('...')[0])-1
+                start = int(k.split('...')[0])
                 end = int(k.split('...')[1])
-                stand = v
-                where2end = len(read.seq) - end
-                cds = read.seq[start:-where2end]
-                if stand == '+':
-                    outputting.write('>' + k + '.' + strand +'\n')
+                strand = v
+                where2end =  end
+                cds = read.seq[start:where2end]
+                if strand == '+':
+                    outputting.write('>' +  read.name + '--' + str(k) + '.' + strand +'\n')
                     outputting.write(cds + '\n')
-                if stand == '-':
+                if strand == '-':
                     corrected = rev_comp(cds)
-                    outputting.write('>' + k + '.' + strand +'\n')
+                    outputting.write('>' + read.name + '--' + str(k) + '.' + strand +'\n')
                     outputting.write(corrected + '\n')
 else:
     print 'FILE TYPE NOT DEFINED; type either "fasta" or "fastq"'
